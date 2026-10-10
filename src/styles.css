@@ -1,0 +1,1100 @@
+/* Casement — THE base stylesheet. Single source of all visual styling. SVG elements
+   are styled by class only; there are no inline style strings anywhere in the TS. The cabinet
+   rectangle is defined ONCE here (.cabinet + .cabinet--base / .cabinet--wall) and reused by
+   both views through drawCabinetRect(). */
+
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+
+  /* ---- CHROME tokens (cycle 012) — the app's OWN look: panels, buttons, text, focus. THE
+     canvas palette below (wall/band/cabinet-*) is a SEPARATE, untouched family — the kitchen
+     itself must render identically before/after this cycle. Never blend the two. */
+
+  /* Neutral ramp (Spectrum-like gray scale), light surface -> near-black text. */
+  --gray-50: #ffffff;
+  --gray-75: #fafafa;
+  --gray-100: #f4f5f7;
+  --gray-200: #e9eaed;
+  --gray-300: #d5d7dc;
+  --gray-400: #b3b7bf;
+  --gray-500: #8e929b;
+  --gray-600: #6e727b;
+  --gray-700: #4b4f58;
+  --gray-800: #2c2f36;
+  --gray-900: #1b1d22;
+
+  /* Semantic chrome roles, re-mapped onto the ramp — every existing rule that reads --bg/
+     --surface/--ink/--ink-soft/--line keeps working unchanged. */
+  --bg: var(--gray-100);
+  --surface: var(--gray-50);
+  --ink: var(--gray-900);
+  --ink-soft: var(--gray-600);
+  --line: var(--gray-300);
+
+  /* Accent: one Adobe-web CTA blue family — the primary action, focus rings, and chrome
+     selection affordances (NOT the canvas's --selected, which stays canvas-only below). */
+  --accent: #1473e6;
+  --accent-hover: #0d66d0;
+  --accent-active: #0b59b3;
+  --accent-soft: #e6f1fd;
+  --focus-ring: 0 0 0 3px rgba(20, 115, 230, 0.28);
+
+  /* Type scale — UI base ~13px, system stack (unchanged font family list, reordered for a
+     crisper Windows-first render; the stack itself is unaffected on other platforms). */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-lg: 1.0625rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Spacing (4px grid), radius, border, elevation — one small scale for the whole chrome. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --border-width: 1px;
+  --shadow-raised: 0 1px 3px rgba(27, 29, 34, 0.08), 0 1px 2px rgba(27, 29, 34, 0.05);
+
+  /* ---- CANVAS palette (kitchen colors) — UNTOUCHED by this cycle. Plan/elevation/3D must
+     render a saved design identically before and after the chrome rework. */
+
+  /* Wall + selection */
+  --wall: #8a8172;
+  --selected: #d98324;
+
+  /* Destructive actions (delete cabinet, start over) — one source, two users. */
+  --danger: #b3402f;
+
+  /* Cabinet piece label ink (cycle 015) — paired with .cabinet__label's halo below so it stays
+     legible over every curated finish, dark ones included. */
+  --cabinet-label-ink: #22333b;
+
+  /* Canvas text/backdrop — pinned to their pre-cycle-012 literal values (the old --ink/
+     --ink-soft/--surface/--bg) so the plan/elevation SVG labels, the floor line, and the 3D
+     scene backdrop render IDENTICALLY before and after the chrome remap, independent of
+     whatever --ink/--ink-soft/--surface/--bg become for chrome. Canvas-only; never read by a
+     chrome rule. */
+  --canvas-ink: #2b2b2b;
+  --canvas-ink-soft: #6b6b6b;
+  --canvas-surface: #ffffff;
+  --canvas-bg: #f4f2ee;
+
+  /* Band zone tints (elevation backdrop) */
+  --band-toe-kick: #ece7df;
+  --band-base: #f7f3ec;
+  --band-counter: #d8c7a8;
+  --band-gap: #eef2f4;
+  --band-wall-cabinet: #f2ede4;
+  --band-space-above: #f6f5f2;
+
+  /* Cabinet fills */
+  --cabinet-base-fill: #c9a26b;
+  --cabinet-base-stroke: #7c5a2e;
+  --cabinet-wall-fill: #9db8c6;
+  --cabinet-wall-stroke: #4d6b7a;
+  --cabinet-kind-filler-fill: #d8d3c8;
+  --cabinet-kind-filler-stroke: #918a78;
+
+  /* Appliance/fixture fills — a stainless-gray family, distinct from the wood-tone cabinets */
+  --cabinet-kind-fridge-fill: #c3c9cc;
+  --cabinet-kind-fridge-stroke: #6e7477;
+  --cabinet-kind-range-fill: #4a4d4f;
+  --cabinet-kind-range-stroke: #26282a;
+  --cabinet-kind-dishwasher-fill: #b0b6b9;
+  --cabinet-kind-dishwasher-stroke: #5f6467;
+  --cabinet-kind-sink-fill: #9fb0b8;
+  --cabinet-kind-sink-stroke: #56676e;
+  --cabinet-kind-wall-oven-fill: #55585a;
+  --cabinet-kind-wall-oven-stroke: #2d2f31;
+  --cabinet-kind-hood-fill: #d6d9da;
+  --cabinet-kind-hood-stroke: #85898b;
+
+  /* Openings (window/door/doorway) — wall FEATURES, not furniture: translucent fill + dashed
+     stroke so they read as "not a solid piece" at a glance, distinct from the filler dash. */
+  --cabinet-kind-window-fill: rgba(157, 197, 219, 0.35);
+  --cabinet-kind-window-stroke: #4d8fa6;
+  --cabinet-kind-door-fill: rgba(217, 131, 36, 0.18);
+  --cabinet-kind-door-stroke: #b3651f;
+  --cabinet-kind-doorway-fill: rgba(217, 131, 36, 0.08);
+  --cabinet-kind-doorway-stroke: #b3651f;
+
+  /* ---- Curated finishes (cycle 014) — ONE variable per finish; TS never touches a literal
+     color for these, only the key/registry (finishes.ts) and the variable NAME. 2D reads them
+     via .finish--<key> classes on the one cabinet renderer; 3D reads them via the SAME
+     cssColor() buildScene.ts has always used. These are a NEW family, independent of the
+     canvas-pinned cabinet, wall, and band variables above — a saved design's finish/material
+     assignments are what changes the render now, not a swap of the old fixed palette. */
+
+  /* Cabinet finishes */
+  --finish-cabinet-white: #f5f1e8;
+  --finish-cabinet-cream: #ede0c8;
+  --finish-cabinet-sage: #93a583;
+  --finish-cabinet-navy: #2d3e50;
+  --finish-cabinet-graphite: #3a3d40;
+  --finish-cabinet-warm-oak: #c19a6b;
+  --finish-cabinet-walnut: #5c4433;
+  --finish-cabinet-weathered-gray: #8b8c87;
+
+  /* Counter materials */
+  --finish-counter-butcher-block: #b5854f;
+  --finish-counter-white-quartz: #f1efe8;
+  --finish-counter-black-granite: #2a2a2d;
+  --finish-counter-gray-stone: #9a9a94;
+  --finish-counter-marble: #e9e6dd;
+
+  /* Floor materials */
+  --finish-floor-light-oak: #d3b483;
+  --finish-floor-dark-walnut: #4a3728;
+  --finish-floor-white-tile: #eae7df;
+  --finish-floor-gray-plank: #7c7c76;
+  --finish-floor-terracotta: #b5603e;
+
+  /* Wall paints */
+  --finish-wall-white: #faf8f3;
+  --finish-wall-greige: #ded5c5;
+  --finish-wall-sage-green: #b6c3ab;
+  --finish-wall-soft-blue: #b7ccd8;
+  --finish-wall-warm-cream: #f0e3ca;
+
+  /* Backsplash materials */
+  --finish-backsplash-white: #f5f2ec;
+  --finish-backsplash-marble: #e9e6dd;
+  --finish-backsplash-gray-stone: #9a9a94;
+  --finish-backsplash-navy: #2d3e50;
+
+  /* Glass-front door style (3D only) — a fixed pair the glass style always uses, independent of
+     the piece's own cabinet finish (which still colors its frame). */
+  --finish-glass-pane: #bcd4e0;
+  --finish-glass-interior: #1c1c1c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--text-base);
+}
+
+/* A catalog drag in progress (cycle 013): "no-drop" everywhere by default; the plan/elevation
+   canvases override back to their normal cursor since a valid ghost can land there. */
+body.catalog-dragging {
+  cursor: no-drop;
+}
+
+body.catalog-dragging .view--plan,
+body.catalog-dragging .view--elevation {
+  cursor: default;
+}
+
+/* ---- Shell ---------------------------------------------------------------- */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ---- ONE button system — every button in the app carries .btn (+ a variant). ------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--line);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  color: var(--ink);
+  white-space: nowrap;
+  transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+}
+
+.btn:not(:disabled):hover {
+  background: var(--gray-100);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Visually-disabled but still draggable (cycle 015) — a catalog add-row that can't fit on the
+   selected wall keeps the same muted look as a real :disabled button, but never carries the
+   attribute itself (that would block the drag pointerdown along with the click). */
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn:focus-visible,
+.number-input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--accent);
+}
+
+/* The single accent CTA (3D button) + submit-style confirmations. */
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn--primary:not(:disabled):hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn--primary:not(:disabled):active {
+  background: var(--accent-active);
+  border-color: var(--accent-active);
+}
+
+/* Icon-only buttons (undo/redo) — minimal chrome until hovered. */
+.btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  padding: var(--space-2);
+}
+
+.btn--quiet:not(:disabled):hover {
+  background: var(--gray-100);
+  border-color: var(--gray-100);
+}
+
+/* Destructive actions (Start over, Delete) — solid red, one source for both users. */
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn--danger:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* ---- Shared numeric input (retires the old .properties__input leak) ---------------------- */
+
+.number-input {
+  font: inherit;
+  font-size: var(--text-base);
+  width: 4.5rem;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* ---- Top bar ---------------------------------------------------------------------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-bottom: var(--border-width) solid var(--line);
+}
+
+.topbar__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.topbar__spacer {
+  flex: 1;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.topbar__undo-redo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ---- Room form (compact, lives in the top bar) ------------------------------------------- */
+
+.room-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.room-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-form__label {
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+/* ---- Left catalog panel ------------------------------------------------------------------ */
+
+.catalog {
+  flex: 0 0 216px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: var(--border-width) solid var(--line);
+  overflow-y: auto;
+}
+
+.catalog__section {
+  padding: var(--space-3);
+  border-bottom: var(--border-width) solid var(--line);
+}
+
+.catalog__section-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.catalog__width-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+
+.catalog__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  margin-bottom: var(--space-1);
+}
+
+.catalog__row:last-child {
+  margin-bottom: 0;
+}
+
+.catalog__row--base {
+  border-left: 3px solid var(--cabinet-base-fill);
+}
+
+.catalog__row--wall {
+  border-left: 3px solid var(--cabinet-wall-fill);
+}
+
+/* ---- Workspace / center panels -------------------------------------------------------- */
+
+/* The catalog docks flush (full height, no gap) between the top and status bars; the plan/
+   elevation/properties panels float as padded cards within their own row alongside it. */
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.workspace__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-raised);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-raised);
+}
+
+.panel--plan,
+.panel--elevation {
+  flex: 1;
+}
+
+.panel--properties {
+  flex: 0 0 232px;
+}
+
+.panel__title {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  border-bottom: var(--border-width) solid var(--line);
+  /* A single text child still lays out flush-left (space-between collapses to that with one
+     child) — this is what lets the elevation panel's header (cycle 016) add a nav cluster on
+     the right without any visual change to the plan/properties panels' plain titles. */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* Prev/next wall-paging arrows (cycle 016 Part B3), living inside the elevation panel's own
+   .panel__title alongside its plain text label. */
+.panel__title-nav {
+  display: flex;
+  gap: var(--space-1);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ---- Wall filmstrip (cycle 016 Part B2): one live mini-elevation thumbnail per perimeter wall
+   + island, in room order. First definitions — token-based, same button/card idioms as every
+   other interactive chrome element. ------------------------------------------------------- */
+
+.filmstrip {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  overflow-x: auto;
+  flex: 0 0 auto;
+  background: var(--surface);
+  border-bottom: var(--border-width) solid var(--line);
+}
+
+.filmstrip__thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  width: 96px;
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.filmstrip__thumb:hover {
+  border-color: var(--accent);
+}
+
+.filmstrip__thumb.is-current {
+  border-color: var(--selected);
+  border-width: 2px;
+}
+
+/* Coordinator drop targets (cycle 019 Part 4) — the SAME green/red language as the canvas ghost
+   (.cabinet--ghost / --ghost-invalid): hovering a thumb during any live drag (add or move)
+   previews whether dropping there would land. */
+.filmstrip__thumb.is-drop-target {
+  border-color: var(--accent);
+  border-width: 2px;
+  background: var(--accent-soft);
+}
+
+.filmstrip__thumb.is-drop-target--invalid {
+  border-color: var(--danger);
+  border-width: 2px;
+  background: rgba(179, 64, 47, 0.12);
+}
+
+.filmstrip__thumb-svg {
+  width: 100%;
+  height: 64px;
+  display: block;
+  background: var(--canvas-bg);
+}
+
+.filmstrip__thumb-label {
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.panel__surface {
+  flex: 1;
+  min-height: 0;
+}
+
+.view {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none; /* let pointer-drag work without the browser panning */
+}
+
+/* Space-held pan (cycle 013 Part 5) — grab while held, grabbing while actively dragging. */
+.view--space-pan {
+  cursor: grab;
+}
+
+.view--space-pan:active {
+  cursor: grabbing;
+}
+
+.view--plan {
+  background: repeating-linear-gradient(0deg, #faf8f4, #faf8f4 23px, #f1eee8 24px),
+    repeating-linear-gradient(90deg, #faf8f4, #faf8f4 23px, #f1eee8 24px);
+}
+
+.view__hint {
+  fill: var(--canvas-ink-soft);
+  font-size: 0.9rem;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* ---- Plan: walls -------------------------------------------------------- */
+
+.wall {
+  fill: var(--wall);
+  cursor: pointer;
+  rx: 2;
+}
+
+.wall:hover {
+  fill: #6f6656;
+}
+
+.wall.is-selected {
+  fill: var(--selected);
+}
+
+/* An island's plan footprint — a floor AREA (unlike a perimeter wall's thin line segment), so
+   it reads as a deck a homeowner can walk around rather than a fifth wall. Reuses existing
+   color variables; no new literals. */
+.island-deck {
+  fill: var(--band-base);
+  stroke: var(--wall);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  cursor: pointer;
+  rx: 4;
+}
+
+.island-deck:hover {
+  stroke: #6f6656;
+}
+
+.island-deck.is-selected {
+  stroke: var(--selected);
+  stroke-width: 3;
+}
+
+.wall__label {
+  fill: var(--canvas-ink-soft);
+  font-size: 0.7rem;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  /* Halo so the label stays readable when a cabinet footprint paints under it. */
+  paint-order: stroke;
+  stroke: var(--canvas-surface);
+  stroke-width: 3px;
+}
+
+/* ---- Elevation: bands --------------------------------------------------- */
+
+.band {
+  stroke: #ffffff;
+  stroke-width: 1;
+}
+
+.band--toe-kick { fill: var(--band-toe-kick); }
+.band--base { fill: var(--band-base); }
+.band--counter { fill: var(--band-counter); }
+.band--gap { fill: var(--band-gap); }
+.band--wall-cabinet { fill: var(--band-wall-cabinet); }
+.band--space-above { fill: var(--band-space-above); }
+
+.band__label {
+  fill: var(--canvas-ink-soft);
+  font-size: 0.62rem;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.floor-line {
+  stroke: var(--canvas-ink);
+  stroke-width: 2;
+}
+
+/* ---- Cabinet rectangle (ONE definition, both views) --------------------- */
+
+.cabinet__box {
+  stroke-width: 1.5;
+}
+
+.cabinet--interactive {
+  cursor: pointer;
+}
+
+.cabinet--base .cabinet__box {
+  fill: var(--cabinet-base-fill);
+  stroke: var(--cabinet-base-stroke);
+}
+
+.cabinet--wall .cabinet__box {
+  fill: var(--cabinet-wall-fill);
+  stroke: var(--cabinet-wall-stroke);
+}
+
+/* Filler strips are a plain cabinet in every other respect; this modifier just neutralizes the
+   base/wall fill so they read as "not a real cabinet" — a muted, dashed-outline tone instead of
+   a solid one. (SVG `fill` can't take a CSS gradient function, so this stays a flat color.) */
+.cabinet--kind-filler .cabinet__box {
+  fill: var(--cabinet-kind-filler-fill);
+  stroke: var(--cabinet-kind-filler-stroke);
+  stroke-dasharray: 3 2;
+}
+
+/* Appliances/fixtures: each kind is a general cabinet--kind-${kind} modifier on the SAME one
+   cabinet renderer — no second draw path, just a distinct fill/stroke per kind. */
+.cabinet--kind-fridge .cabinet__box {
+  fill: var(--cabinet-kind-fridge-fill);
+  stroke: var(--cabinet-kind-fridge-stroke);
+}
+
+.cabinet--kind-range .cabinet__box {
+  fill: var(--cabinet-kind-range-fill);
+  stroke: var(--cabinet-kind-range-stroke);
+}
+
+.cabinet--kind-dishwasher .cabinet__box {
+  fill: var(--cabinet-kind-dishwasher-fill);
+  stroke: var(--cabinet-kind-dishwasher-stroke);
+}
+
+.cabinet--kind-sink .cabinet__box {
+  fill: var(--cabinet-kind-sink-fill);
+  stroke: var(--cabinet-kind-sink-stroke);
+}
+
+.cabinet--kind-wall-oven .cabinet__box {
+  fill: var(--cabinet-kind-wall-oven-fill);
+  stroke: var(--cabinet-kind-wall-oven-stroke);
+}
+
+.cabinet--kind-hood .cabinet__box {
+  fill: var(--cabinet-kind-hood-fill);
+  stroke: var(--cabinet-kind-hood-stroke);
+}
+
+/* Openings: translucent fill + dashed stroke — reads as a wall feature, not furniture. */
+.cabinet--kind-window .cabinet__box {
+  fill: var(--cabinet-kind-window-fill);
+  stroke: var(--cabinet-kind-window-stroke);
+  stroke-dasharray: 4 2;
+}
+
+.cabinet--kind-door .cabinet__box,
+.cabinet--kind-doorway .cabinet__box {
+  fill: var(--cabinet-kind-door-fill);
+  stroke: var(--cabinet-kind-door-stroke);
+  stroke-dasharray: 4 2;
+}
+
+/* Curated cabinet finish (cycle 014) — a subtle FILL-only tint (stroke stays the band's own),
+   applied by drawCabinetRect via resolveFinish. Comes after every band/kind fill above so a
+   finish always wins over the plain base/wall color, and BEFORE .cabinet--ghost below so a
+   ghost's own green/red read always wins over whatever finish it happens to carry. */
+.finish--white .cabinet__box { fill: var(--finish-cabinet-white); }
+.finish--cream .cabinet__box { fill: var(--finish-cabinet-cream); }
+.finish--sage .cabinet__box { fill: var(--finish-cabinet-sage); }
+.finish--navy .cabinet__box { fill: var(--finish-cabinet-navy); }
+.finish--graphite .cabinet__box { fill: var(--finish-cabinet-graphite); }
+.finish--warm-oak .cabinet__box { fill: var(--finish-cabinet-warm-oak); }
+.finish--walnut .cabinet__box { fill: var(--finish-cabinet-walnut); }
+.finish--weathered-gray .cabinet__box { fill: var(--finish-cabinet-weathered-gray); }
+
+.cabinet.is-selected .cabinet__box {
+  stroke: var(--selected);
+  stroke-width: 3;
+}
+
+.cabinet__label {
+  fill: var(--cabinet-label-ink);
+  font-size: 0.65rem;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  /* Halo so the label stays legible over any cabinet finish, dark ones included — same idiom
+     .wall__label has carried since cycle 007. */
+  paint-order: stroke;
+  stroke: var(--canvas-surface);
+  stroke-width: 3px;
+}
+
+/* Catalog drag-ghost (cycle 013) — the SAME .cabinet renderer, two new modifiers: never
+   interactive (never eats a click/drag meant for a real piece), dashed outline so it always
+   reads as a preview rather than a placed piece. Green/red is carried by the outline + tint,
+   not a separate shape, so "will it land" is legible at a glance. */
+.cabinet--ghost {
+  pointer-events: none;
+}
+
+.cabinet--ghost .cabinet__box {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
+  opacity: 0.85;
+}
+
+.cabinet--ghost-invalid .cabinet__box {
+  fill: rgba(179, 64, 47, 0.12);
+  stroke: var(--danger);
+}
+
+/* Snap guide (cycle 019 Part 5) — first definition of the .guide class family: one dashed,
+   token-colored line, drawn by elevationView (vertical, through the alignment) and planView
+   (across the wall's depth strip) alike. Never interactive; purely a live preview, cleared the
+   instant a drag un-snaps or the gesture ends. */
+.guide {
+  stroke: var(--selected);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+/* ---- Resize handles (canvas overlay, cycle 013) --------------------------------------------
+   ONE handle family for every resizable edge — the elevation piece's left/right/top edges and
+   the plan island deck's end handles all carry .handle plus one of the cursor modifiers below.
+   No per-context handle styling: same fill/opacity/hover everywhere a handle appears. */
+
+.handle {
+  fill: var(--accent);
+  opacity: 0.28;
+  transition: opacity 0.1s ease;
+}
+
+.handle:hover {
+  opacity: 0.65;
+}
+
+.handle--ew-resize {
+  cursor: ew-resize;
+}
+
+.handle--ns-resize {
+  cursor: ns-resize;
+}
+
+/* ---- .swatch — THE one chip element (cycle 014), used by BOTH the catalog's Style section and
+   the properties panel's Finish section. Real <button>s (native Tab/Enter/Space + hover/focus);
+   first definition, never a second chip class. Color modifiers are one rule per curated finish,
+   derived 1:1 from finishes.ts's own cssVar via swatchModifierClass — see that function for the
+   naming convention (`--finish-<x>` -> `.swatch--<x>`). ------------------------------------ */
+
+.swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--line);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease;
+}
+
+.swatch:hover {
+  box-shadow: var(--focus-ring);
+}
+
+.swatch:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.swatch.is-selected {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.swatch--cabinet-white { background: var(--finish-cabinet-white); }
+.swatch--cabinet-cream { background: var(--finish-cabinet-cream); }
+.swatch--cabinet-sage { background: var(--finish-cabinet-sage); }
+.swatch--cabinet-navy { background: var(--finish-cabinet-navy); }
+.swatch--cabinet-graphite { background: var(--finish-cabinet-graphite); }
+.swatch--cabinet-warm-oak { background: var(--finish-cabinet-warm-oak); }
+.swatch--cabinet-walnut { background: var(--finish-cabinet-walnut); }
+.swatch--cabinet-weathered-gray { background: var(--finish-cabinet-weathered-gray); }
+
+.swatch--counter-butcher-block { background: var(--finish-counter-butcher-block); }
+.swatch--counter-white-quartz { background: var(--finish-counter-white-quartz); }
+.swatch--counter-black-granite { background: var(--finish-counter-black-granite); }
+.swatch--counter-gray-stone { background: var(--finish-counter-gray-stone); }
+.swatch--counter-marble { background: var(--finish-counter-marble); }
+
+.swatch--floor-light-oak { background: var(--finish-floor-light-oak); }
+.swatch--floor-dark-walnut { background: var(--finish-floor-dark-walnut); }
+.swatch--floor-white-tile { background: var(--finish-floor-white-tile); }
+.swatch--floor-gray-plank { background: var(--finish-floor-gray-plank); }
+.swatch--floor-terracotta { background: var(--finish-floor-terracotta); }
+
+.swatch--wall-white { background: var(--finish-wall-white); }
+.swatch--wall-greige { background: var(--finish-wall-greige); }
+.swatch--wall-sage-green { background: var(--finish-wall-sage-green); }
+.swatch--wall-soft-blue { background: var(--finish-wall-soft-blue); }
+.swatch--wall-warm-cream { background: var(--finish-wall-warm-cream); }
+
+.swatch--backsplash-white { background: var(--finish-backsplash-white); }
+.swatch--backsplash-marble { background: var(--finish-backsplash-marble); }
+.swatch--backsplash-gray-stone { background: var(--finish-backsplash-gray-stone); }
+.swatch--backsplash-navy { background: var(--finish-backsplash-navy); }
+
+/* ---- Catalog "Style" section (cycle 014): preset rows reuse .catalog__row; the active preset
+   gets a soft accent background. Surface rows are a label + a wrapped strip of swatch chips. */
+
+.catalog__row.is-selected {
+  background: var(--accent-soft);
+}
+
+/* "Custom" caption (cycle 015) — shown only once the room's style has diverged from the last
+   preset actually clicked (style.preset === "custom"), so the Style section never claims a
+   bundle the room no longer wears. */
+.catalog__custom-caption {
+  display: none;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  margin: 0 0 var(--space-2);
+}
+
+.catalog__custom-caption.is-visible {
+  display: block;
+}
+
+.catalog__swatch-row {
+  margin-bottom: var(--space-2);
+}
+
+.catalog__swatch-row:last-child {
+  margin-bottom: 0;
+}
+
+.catalog__swatch-row-label {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  margin-bottom: var(--space-1);
+}
+
+.catalog__swatch-row-chips {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+/* ---- Properties "Finish" section (cycle 014): a swatch row + a door-style segmented trio on
+   the existing .btn system. ----------------------------------------------------------------- */
+
+.properties__swatch-row {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  margin-top: var(--space-1);
+}
+
+.properties__segmented {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.properties__segmented-option.is-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-active);
+}
+
+/* ---- Properties panel (right, sectioned) ------------------------------------------------- */
+
+.properties__section {
+  padding: var(--space-3);
+  border-bottom: var(--border-width) solid var(--line);
+}
+
+.properties__section:last-child {
+  border-bottom: none;
+}
+
+.properties__hint {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.properties__type {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.properties__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.properties__field:last-child {
+  margin-bottom: 0;
+}
+
+.properties__label {
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+
+/* THE single feedback channel (cycle 011 Part 4): one message strip per selection, shown only
+   when an edit didn't fully succeed (a push fell short, a value clamped, a rotation rejected).
+   Hidden by default (`.is-visible` toggled in properties.ts) so a clean edit shows nothing. */
+.properties__message {
+  display: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--danger);
+  background: rgba(179, 64, 47, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.properties__message.is-visible {
+  display: block;
+}
+
+/* ---- Bottom status bar ------------------------------------------------------------------- */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-1) var(--space-4);
+  background: var(--surface);
+  border-top: var(--border-width) solid var(--line);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  min-height: 28px;
+}
+
+.statusbar__selection {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink);
+}
+
+/* Right-side cluster (cycle 016): the save whisper + the one hint ladder, grouped so
+   .statusbar's own space-between still reads as exactly two zones (selection, everything else). */
+.statusbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The save whisper (cycle 016 audit #A4) — fades in on showSavedWhisper(), fades back out on
+   its own timer. First definition; never routes through the hint ladder below. */
+.statusbar__saved {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.statusbar__saved.is-visible {
+  opacity: 1;
+}
+
+/* THE one hint-priority ladder (cycle 016 audit #A3) — a single element, exactly one rung at a
+   time: a transient outcome (red, same tone the old .statusbar__transient-hint used), else the
+   camera hint or the select-a-wall hint (both plain muted text, no color distinction between
+   them). Always rendered (an empty string shows nothing) — no separate visibility toggle needed
+   now that there is only one element to write to. */
+.statusbar__hint.is-danger {
+  color: var(--danger);
+}
+
+/* ---- 3D preview overlay -------------------------------------------------- */
+/* THE single source for any future full-window surface — later cycles extend these classes
+   rather than declaring a second overlay. */
+
+.viewer3d {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+}
+
+.viewer3d__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.viewer3d__close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+}

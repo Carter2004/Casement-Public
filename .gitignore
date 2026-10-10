@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Vite / TS caches
+.vite/
+*.tsbuildinfo
+
+# Local editor / OS cruft
+.DS_Store
+Thumbs.db
+*.local
+
+# Claude local machine settings (permissions etc. — never shared)
+.claude/settings.local.json
+
+# Casement Vault (fleet documentation) is committed; its Obsidian app config is machine-local
+Casement Vault/.obsidian/

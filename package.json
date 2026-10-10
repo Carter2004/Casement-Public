@@ -1,0 +1,22 @@
+{
+  "name": "casement",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Design your own kitchen: a linked plan + elevation cabinet editor.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  }
+}
